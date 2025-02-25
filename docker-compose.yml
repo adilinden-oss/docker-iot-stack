@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+
+  homebridge:
+    image: homebridge/homebridge:latest
+    container_name: homebridge
+    environment:
+      - MQTTTHING_URL=${MQTTTHING_URL}
+      - MQTTTHING_USERNAME=${MQTTTHING_USERNAME}
+      - MQTTTHING_PASSWORD=${MQTTTHING_PASSWORD}
+      - ENABLE_AVAHI=0
+    security_opt:
+      - apparmor=unconfined
+    volumes:
+      - ./volumes/homebridge:/homebridge
+      - /var/run/dbus:/var/run/dbus
+      - /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket
+    network_mode: host
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '1'
+    healthcheck:
+      test: curl --fail localhost:8581 || exit 1
+      interval: 60s
+      retries: 5
+      start_period: 300s
+      timeout: 2s
+    restart: unless-stopped
+
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto
+    volumes:
+      - ./volumes/mosquitto/config:/mosquitto/config
+      - ./volumes/mosquitto/data:/mosquitto/data
+    ports:
+      - "1883:1883"
+      #- "9001:9001"
+    restart: unless-stopped
+
+  node-red:
+    image: nodered/node-red:latest
+    container_name: node-red
+    depends_on:
+      - mosquitto
+    user: 0:0
+    environment:
+      - TZ=${TZ:-America/Winnipeg}
+    ports:
+      - "1880:1880"
+    volumes:
+      - ./volumes/node-red/data:/data
+
