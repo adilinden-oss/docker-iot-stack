@@ -13,7 +13,7 @@ services:
     security_opt:
       - apparmor=unconfined
     volumes:
-      - ./volumes/homebridge:/homebridge
+      - ${PWD}/volumes/homebridge:/homebridge
       - /var/run/dbus:/var/run/dbus
       - /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket
     network_mode: host
@@ -34,8 +34,8 @@ services:
     image: eclipse-mosquitto:latest
     container_name: mosquitto
     volumes:
-      - ./volumes/mosquitto/config:/mosquitto/config
-      - ./volumes/mosquitto/data:/mosquitto/data
+      - ${PWD}/volumes/mosquitto/config:/mosquitto/config
+      - ${PWD}/volumes/mosquitto/data:/mosquitto/data
     ports:
       - "1883:1883"
       #- "9001:9001"
@@ -52,5 +52,5 @@ services:
     ports:
       - "1880:1880"
     volumes:
-      - ./volumes/node-red/data:/data
-
+      - ${PWD}/volumes/node-red/data:/data
+    restart: unless-stopped
