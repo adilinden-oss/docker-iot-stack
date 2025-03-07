@@ -84,9 +84,6 @@ services:
       - ${PWD}/volumes/ts-caddy/run:/tmp
     cap_add:
       - NET_ADMIN
-    ports:
-      - "80:80"
-      - "443:443"
     restart: unless-stopped
 
   caddy:
