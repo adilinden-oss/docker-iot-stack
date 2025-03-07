@@ -1,34 +1,4 @@
-version: '3.8'
-
 services:
-
-  homebridge:
-    image: homebridge/homebridge:latest
-    container_name: homebridge
-    environment:
-      - MQTTTHING_URL=${MQTTTHING_URL}
-      - MQTTTHING_USERNAME=${MQTTTHING_USERNAME}
-      - MQTTTHING_PASSWORD=${MQTTTHING_PASSWORD}
-      - ENABLE_AVAHI=0
-    security_opt:
-      - apparmor=unconfined
-    volumes:
-      - ${PWD}/volumes/homebridge:/homebridge
-      - /var/run/dbus:/var/run/dbus
-      - /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket
-    network_mode: host
-    logging:
-      driver: json-file
-      options:
-        max-size: '10m'
-        max-file: '1'
-    healthcheck:
-      test: curl --fail localhost:8581 || exit 1
-      interval: 60s
-      retries: 5
-      start_period: 300s
-      timeout: 2s
-    restart: unless-stopped
 
   mosquitto:
     image: eclipse-mosquitto:latest
@@ -54,3 +24,49 @@ services:
     volumes:
       - ${PWD}/volumes/node-red/data:/data
     restart: unless-stopped
+
+  zigbee2mqtt:
+    image: koenkk/zigbee2mqtt:latest
+    container_name: zigbee2mqtt
+    depends_on:
+      - mosquitto
+    environment:
+      - TZ=${TZ:-America/Winnipeg}
+      - ZIGBEE2MQTT_CONFIG_MQTT_SERVER=${ZIGBEE2MQTT_CONFIG_MQTT_SERVER}
+      - ZIGBEE2MQTT_CONFIG_MQTT_USER=${ZIGBEE2MQTT_CONFIG_MQTT_USER}
+      - ZIGBEE2MQTT_CONFIG_MQTT_PASSWORD=${ZIGBEE2MQTT_CONFIG_MQTT_PASSWORD}
+      - ZIGBEE2MQTT_CONFIG_ADVANCED_LOG_SYMLINK_CURRENT=true
+    ports:
+      - "8080:8080"
+    volumes:
+      - ${PWD}/volumes/zigbee2mqtt/data:/app/data
+      - /run/udev:/run/udev:ro
+    devices:
+      - /dev/serial/by-id/usb-Silicon_Labs_Sonoff_Zigbee_3.0_USB_Dongle_Plus_0001-if00-port0:/dev/ttyACM0
+    group_add:
+      - dialout
+    restart: unless-stopped
+
+  rtl433:
+    image: hertzg/rtl_433:latest
+    container_name: rtl433
+    depends_on:
+      - mosquitto
+    command:
+      - "-Csi"
+      - "-Mtime:unix:usec:utc"
+      - "-Mbits"
+      - "-Mlevel"
+      - "-Mprotocol"
+      - "-Mstats:2:300"
+      - "-F${RTL433_MQTT_SERVER},\
+          retain=1,\
+          user=${RTL433_MQTT_USER},\
+          pass=${RTL433_MQTT_PASSWORD},\
+          events=rtl_433/iot-br-1/events,\
+          states=rtl_433/iot-br-1/states,\
+          devices=rtl_433/iot-br-1/devices[/type][/model][/subtype][/channel][/id]"
+    devices:
+      - "/dev/bus/usb/002/002"
+    restart: unless-stopped
+
