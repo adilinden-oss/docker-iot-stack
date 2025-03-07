@@ -70,3 +70,48 @@ services:
       - "/dev/bus/usb/002/002"
     restart: unless-stopped
 
+  ts-caddy:
+    image: tailscale/tailscale
+    container_name: ts-caddy
+    hostname: iot-stack
+    environment:
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_AUTH_KEY=${TS_AUTH_KEY}
+    volumes:
+      - /dev/net/tun:/dev/net/tun
+      - ${PWD}/volumes/ts-caddy/lib:/var/lib
+      # tailscaled.sock shared with caddy
+      - ${PWD}/volumes/ts-caddy/run:/tmp
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    depends_on:
+      - ts-caddy
+    environment:
+      - CADDY_CERT_DOMAIN=${CADDY_CERT_DOMAIN}
+      - CADDY_UPSTREAM1=${CADDY_UPSTREAM1}
+      - CADDY_UPSTREAM2=${CADDY_UPSTREAM2}
+      - CADDY_UPSTREAM3=${CADDY_UPSTREAM3}
+      - CADDY_UPSTREAM4=${CADDY_UPSTREAM4}
+      - CADDY_UPSTREAM5=${CADDY_UPSTREAM5}
+      - CADDY_LABEL1=${CADDY_LABEL1}
+      - CADDY_LABEL2=${CADDY_LABEL2}
+      - CADDY_LABEL3=${CADDY_LABEL3}
+      - CADDY_LABEL4=${CADDY_LABEL4}
+      - CADDY_LABEL5=${CADDY_LABEL5}
+    volumes:
+      - ${PWD}/config/caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ${PWD}/volumes/caddy/data:/data
+      - ${PWD}/volumes/caddy/config:/config
+      # tailscaled.sock shared with caddy
+      - ${PWD}/volumes/ts-caddy/run:/var/run/tailscale
+    network_mode: service:ts-caddy
+    restart: unless-stopped
+

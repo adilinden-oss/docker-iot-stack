@@ -1,0 +1,63 @@
+(network_paths) {
+    handle_path /uri0x01/* {
+        reverse_proxy /* {$CADDY_UPSTREAM1}
+    }
+
+    handle_path /uri0x02/* {
+        reverse_proxy /* {$CADDY_UPSTREAM2}
+    }
+
+    handle_path /uri0x03/* {
+        reverse_proxy /* {$CADDY_UPSTREAM3}
+    }
+
+    handle_path /uri0x04/* {
+        reverse_proxy /* {$CADDY_UPSTREAM4}
+    }
+
+    handle_path /uri0x05/* {
+        reverse_proxy /* {$CADDY_UPSTREAM5}
+    }
+
+    handle {
+        templates
+        header Content-Type text/html
+	      respond <<HTML
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <title>{{ placeholder "system.hostname" }}</title>
+                <style>
+                  body {
+                    width: 35em;
+                    margin: 0 auto;
+                    font-family: Gerogia, Times New Roman, serif;
+                    text-align: left;
+                  }
+                  h1, .foot {
+                    text-align: center;
+                  }
+                </style>
+              </head>
+              <body>
+            <h1>Directory</h1>
+            <ul>
+            	<li><a href="/uri0x01/">{$CADDY_LABEL1}</a>
+            	<li><a href="/uri0x02/">{$CADDY_LABEL2}</a>
+            	<li><a href="/uri0x03/">{$CADDY_LABEL3}</a>
+            	<li><a href="/uri0x04/">{$CADDY_LABEL4}</a>
+            	<li><a href="/uri0x05/">{$CADDY_LABEL5}</a>
+            </ul>
+            <hr />
+                <div class="foot">
+                  <small>Time: {{now | date "Mon Jan 2 15:04:05 MST 2006"}}<br />Server: {{ placeholder "system.hostname" }}</small>
+                </div>
+              </body>
+            </html>
+            HTML 200
+    }
+}
+
+{$CADDY_CERT_DOMAIN} {
+    import network_paths
+}
