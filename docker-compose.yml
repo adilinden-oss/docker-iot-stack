@@ -73,10 +73,11 @@ services:
   ts-caddy:
     image: tailscale/tailscale
     container_name: ts-caddy
-    hostname: iot-stack
+    hostname: ${TS_HOSTNAME}
     environment:
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_AUTH_KEY=${TS_AUTH_KEY}
+      - TS_EXTRA_ARGS=${TS_EXTRA_ARGS}
     volumes:
       - /dev/net/tun:/dev/net/tun
       - ${PWD}/volumes/ts-caddy/lib:/var/lib
