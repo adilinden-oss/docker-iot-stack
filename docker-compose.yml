@@ -67,10 +67,11 @@ services:
           states=rtl_433/iot-br-1/states,\
           devices=rtl_433/iot-br-1/devices[/type][/model][/subtype][/channel][/id]"
     devices:
-      - "/dev/bus/usb/002/002"
+      - "/dev/bus/usb"
     restart: unless-stopped
 
   ts-caddy:
+    profiles: ["disabled"] # temporary disable
     image: tailscale/tailscale
     container_name: ts-caddy
     hostname: ${TS_HOSTNAME}
@@ -88,6 +89,7 @@ services:
     restart: unless-stopped
 
   caddy:
+    profiles: ["disabled"] # temporary disable
     image: caddy:latest
     container_name: caddy
     depends_on:
