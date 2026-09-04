@@ -1,7 +1,7 @@
 services:
 
   mosquitto:
-    image: eclipse-mosquitto:latest
+    image: eclipse-mosquitto:2.1.2-alpine
     container_name: mosquitto
     volumes:
       - ${PWD}/volumes/mosquitto/config:/mosquitto/config
@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
 
   node-red:
-    image: nodered/node-red:latest
+    image: nodered/node-red:5.0.6-24
     container_name: node-red
     depends_on:
       - mosquitto
@@ -26,7 +26,7 @@ services:
     restart: unless-stopped
 
   zigbee2mqtt:
-    image: koenkk/zigbee2mqtt:latest
+    image: koenkk/zigbee2mqtt:2.14.1
     container_name: zigbee2mqtt
     depends_on:
       - mosquitto
